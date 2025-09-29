@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>訂單查詢 - 線上購物系統</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- 自訂樣式 -->
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+<div id="app">
+    <!-- 導航列 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="bi bi-shop"></i> 線上購物系統
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="orders.html">
+                            <i class="bi bi-list-check"></i> 訂單查詢
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin.html">
+                            <i class="bi bi-gear"></i> 後台管理
+                        </a>
+                    </li>
+                </ul>
+
+                <a href="cart.html" class="btn btn-outline-light position-relative me-2">
+                    <i class="bi bi-cart3"></i>
+                    <span
+                            v-if="cartItemCount > 0"
+                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            {{ cartItemCount }}
+                        </span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容 -->
+    <div class="container mt-4">
+        <!-- 頁面標題 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1>
+                    <i class="bi bi-list-check text-primary"></i>
+                    訂單查詢
+                </h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="index.html" class="text-decoration-none">首頁</a>
+                        </li>
+                        <li class="breadcrumb-item active">訂單查詢</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <!-- 查詢表單 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-search"></i> 請輸入您的聯絡資訊查詢訂單
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form @submit.prevent="searchOrders">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">
+                                        <i class="bi bi-envelope"></i> Email
+                                    </label>
+                                    <input
+                                            type="email"
+                                            class="form-control"
+                                            id="email"
+                                            v-model="searchForm.email"
+                                            placeholder="請輸入下單時使用的Email">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="phone" class="form-label">
+                                        <i class="bi bi-telephone"></i> 聯絡電話
+                                    </label>
+                                    <input
+                                            type="tel"
+                                            class="form-control"
+                                            id="phone"
+                                            v-model="searchForm.phone"
+                                            placeholder="請輸入下單時使用的電話">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <p class="text-muted small mb-3">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        請至少填入一項資訊 (Email 或電話) 來查詢您的訂單
+                                    </p>
+                                    <button
+                                            type="submit"
+                                            class="btn btn-primary"
+                                            :disabled="searching || (!searchForm.email && !searchForm.phone)">
+                                            <span v-if="searching">
+                                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                                搜尋中...
+                                            </span>
+                                        <span v-else>
+                                                <i class="bi bi-search me-2"></i>
+                                                查詢訂單
+                                            </span>
+                                    </button>
+                                    <button
+                                            type="button"
+                                            class="btn btn-outline-secondary ms-2"
+                                            @click="clearSearch">
+                                        <i class="bi bi-arrow-counterclockwise"></i> 清除
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 搜尋結果 -->
+        <div v-if="searchPerformed" class="row">
+            <div class="col-12">
+                <!-- 沒有找到訂單 -->
+                <div v-if="orders.length === 0" class="text-center py-5">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <h4 class="mt-3">沒有找到相關訂單</h4>
+                    <p class="text-muted">
+                        請確認您輸入的聯絡資訊是否正確，或嘗試使用其他聯絡方式查詢
+                    </p>
+                </div>
+
+                <!-- 訂單列表 -->
+                <div v-else>
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-receipt"></i> 找到 {{ orders.length }} 筆訂單
+                            </h5>
+                            <small class="text-muted">
+                                搜尋條件：{{ getSearchInfo() }}
+                            </small>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th>訂單編號</th>
+                                        <th>下單日期</th>
+                                        <th>收件人</th>
+                                        <th>訂單金額</th>
+                                        <th>狀態</th>
+                                        <th>操作</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr v-for="order in orders" :key="order.id">
+                                        <td>
+                                            <strong class="text-primary">#{{ order.id }}</strong>
+                                        </td>
+                                        <td>
+                                            {{ formatDate(order.orderDate) }}
+                                        </td>
+                                        <td>
+                                            <div>{{ order.customerName }}</div>
+                                            <small class="text-muted">{{ order.customerPhone }}</small>
+                                        </td>
+                                        <td>
+                                            <strong>NT$ {{ formatPrice(order.totalAmount) }}</strong>
+                                        </td>
+                                        <td>
+                                                    <span :class="getStatusClass(order.status)">
+                                                        <i :class="getStatusIcon(order.status)" class="me-1"></i>
+                                                        {{ getStatusText(order.status) }}
+                                                    </span>
+                                        </td>
+                                        <td>
+                                            <button
+                                                    class="btn btn-outline-primary btn-sm"
+                                                    @click="viewOrderDetail(order.id)">
+                                                <i class="bi bi-eye"></i> 詳情
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 使用說明 -->
+        <div v-if="!searchPerformed" class="row mt-4">
+            <div class="col-md-8 mx-auto">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <i class="bi bi-question-circle display-4 text-muted mb-3"></i>
+                        <h5>如何查詢我的訂單？</h5>
+                        <p class="text-muted">
+                            請在上方表單中輸入您下單時使用的 Email 或聯絡電話，
+                            系統會自動搜尋與該聯絡資訊相關的所有訂單記錄。
+                        </p>
+                        <div class="row mt-4">
+                            <div class="col-md-4 mb-3">
+                                <i class="bi bi-1-circle text-primary fs-3"></i>
+                                <h6 class="mt-2">輸入聯絡資訊</h6>
+                                <small class="text-muted">Email 或電話</small>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <i class="bi bi-2-circle text-primary fs-3"></i>
+                                <h6 class="mt-2">點擊查詢</h6>
+                                <small class="text-muted">搜尋相關訂單</small>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <i class="bi bi-3-circle text-primary fs-3"></i>
+                                <h6 class="mt-2">查看詳情</h6>
+                                <small class="text-muted">點擊詳情按鈕</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 訂單詳情模態框 -->
+    <div class="modal fade" id="orderDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-receipt"></i>
+                        訂單詳情 #{{ selectedOrder?.id }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" v-if="selectedOrder">
+                    <!-- 訂單基本資訊 -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>訂單資訊</h6>
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <td class="text-muted">訂單編號:</td>
+                                    <td><strong>#{{ selectedOrder.id }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">下單時間:</td>
+                                    <td>{{ formatDateTime(selectedOrder.orderDate) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">訂單狀態:</td>
+                                    <td>
+                                            <span :class="getStatusClass(selectedOrder.status)">
+                                                <i :class="getStatusIcon(selectedOrder.status)" class="me-1"></i>
+                                                {{ getStatusText(selectedOrder.status) }}
+                                            </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">訂單金額:</td>
+                                    <td><strong class="text-primary">NT$ {{ formatPrice(selectedOrder.totalAmount) }}</strong></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>收件人資訊</h6>
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <td class="text-muted">姓名:</td>
+                                    <td>{{ selectedOrder.customerName }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">電話:</td>
+                                    <td>{{ selectedOrder.customerPhone }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Email:</td>
+                                    <td>{{ selectedOrder.customerEmail || '未提供' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">地址:</td>
+                                    <td>{{ selectedOrder.customerAddress }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 訂單備註 -->
+                    <div v-if="selectedOrder.notes" class="mb-4">
+                        <h6>訂單備註</h6>
+                        <div class="bg-light p-3 rounded">
+                            {{ selectedOrder.notes }}
+                        </div>
+                    </div>
+
+                    <!-- 訂單商品 -->
+                    <div class="mb-4">
+                        <h6>訂購商品</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead class="table-light">
+                                <tr>
+                                    <th>商品名稱</th>
+                                    <th>單價</th>
+                                    <th>數量</th>
+                                    <th>小計</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-for="item in selectedOrder.orderItems" :key="item.id">
+                                    <td>
+                                        <div>{{ item.productName }}</div>
+                                        <small class="text-muted">{{ item.product?.category || '商品分類' }}</small>
+                                    </td>
+                                    <td>NT$ {{ formatPrice(item.unitPrice) }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td><strong>NT$ {{ formatPrice(item.unitPrice * item.quantity) }}</strong></td>
+                                </tr>
+                                </tbody>
+                                <tfoot class="table-light">
+                                <tr>
+                                    <th colspan="3">總計</th>
+                                    <th><strong class="text-primary">NT$ {{ formatPrice(selectedOrder.totalAmount) }}</strong></th>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 訂單狀態說明 -->
+                    <div class="bg-light p-3 rounded">
+                        <h6><i class="bi bi-info-circle text-primary me-2"></i>訂單狀態說明</h6>
+                        <div class="row small">
+                            <div class="col-md-6">
+                                <div class="mb-1">
+                                    <span class="badge bg-warning text-dark">待處理</span>
+                                    <span class="ms-2">訂單已建立，等待確認</span>
+                                </div>
+                                <div class="mb-1">
+                                    <span class="badge bg-info">已確認</span>
+                                    <span class="ms-2">訂單已確認，準備出貨</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-1">
+                                    <span class="badge bg-primary">已出貨</span>
+                                    <span class="ms-2">商品已寄出，運送中</span>
+                                </div>
+                                <div class="mb-1">
+                                    <span class="badge bg-success">已送達</span>
+                                    <span class="ms-2">商品已送達</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+                    <button type="button" class="btn btn-outline-primary" @click="printOrder" v-if="selectedOrder">
+                        <i class="bi bi-printer"></i> 列印
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div
+                id="errorToast"
+                class="toast align-items-center text-white bg-danger border-0"
+                role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    {{ toastMessage }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript 檔案 -->
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/orders.js"></script>
+</body>
+</html>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>結帳 - 線上購物系統</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- 自訂樣式 -->
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+<div id="app">
+    <!-- 導航列 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="bi bi-shop"></i> 線上購物系統
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="orders.html">
+                            <i class="bi bi-list-check"></i> 訂單查詢
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin.html">
+                            <i class="bi bi-gear"></i> 後台管理
+                        </a>
+                    </li>
+                </ul>
+
+                <a href="cart.html" class="btn btn-outline-light position-relative me-2">
+                    <i class="bi bi-cart3"></i>
+                    <span
+                            v-if="cartItems.length > 0"
+                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            {{ getTotalQuantity() }}
+                        </span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容 -->
+    <div class="container mt-4">
+        <!-- 頁面標題 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1>
+                    <i class="bi bi-credit-card text-primary"></i>
+                    結帳
+                </h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="index.html" class="text-decoration-none">首頁</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="cart.html" class="text-decoration-none">購物車</a>
+                        </li>
+                        <li class="breadcrumb-item active">結帳</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <!-- 結帳步驟指示器 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="progress mb-3" style="height: 4px;">
+                    <div class="progress-bar" role="progressbar" style="width: 100%"></div>
+                </div>
+                <div class="row text-center">
+                    <div class="col-4">
+                        <i class="bi bi-cart-check text-success fs-4"></i>
+                        <div class="small text-success">購物車</div>
+                    </div>
+                    <div class="col-4">
+                        <i class="bi bi-credit-card text-primary fs-4"></i>
+                        <div class="small text-primary fw-bold">結帳</div>
+                    </div>
+                    <div class="col-4">
+                        <i class="bi bi-check-circle text-muted fs-4"></i>
+                        <div class="small text-muted">完成</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 載入提示 -->
+        <div v-if="loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">載入中...</span>
+            </div>
+            <p class="mt-2">載入購物車資料中...</p>
+        </div>
+
+        <!-- 空購物車提示 -->
+        <div v-else-if="cartItems.length === 0" class="text-center py-5">
+            <i class="bi bi-cart-x display-1 text-muted"></i>
+            <h3 class="mt-3">購物車是空的</h3>
+            <p class="text-muted">請先加入商品到購物車</p>
+            <a href="index.html" class="btn btn-primary">
+                <i class="bi bi-bag"></i> 開始購物
+            </a>
+        </div>
+
+        <!-- 結帳表單 -->
+        <div v-else class="row">
+            <!-- 收件人資訊表單 -->
+            <div class="col-lg-7">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-person"></i> 收件人資訊
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form @submit.prevent="submitOrder" novalidate>
+                            <div class="row">
+                                <!-- 姓名 -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="customerName" class="form-label">
+                                        <i class="bi bi-person"></i> 收件人姓名 *
+                                    </label>
+                                    <input
+                                            type="text"
+                                            class="form-control"
+                                            :class="{ 'is-invalid': errors.customerName }"
+                                            id="customerName"
+                                            v-model="orderForm.customerName"
+                                            placeholder="請輸入收件人姓名"
+                                            required>
+                                    <div class="invalid-feedback">
+                                        {{ errors.customerName }}
+                                    </div>
+                                </div>
+
+                                <!-- 電話 -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="customerPhone" class="form-label">
+                                        <i class="bi bi-telephone"></i> 聯絡電話 *
+                                    </label>
+                                    <input
+                                            type="tel"
+                                            class="form-control"
+                                            :class="{ 'is-invalid': errors.customerPhone }"
+                                            id="customerPhone"
+                                            v-model="orderForm.customerPhone"
+                                            placeholder="請輸入聯絡電話"
+                                            required>
+                                    <div class="invalid-feedback">
+                                        {{ errors.customerPhone }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="mb-3">
+                                <label for="customerEmail" class="form-label">
+                                    <i class="bi bi-envelope"></i> Email (選填)
+                                </label>
+                                <input
+                                        type="email"
+                                        class="form-control"
+                                        :class="{ 'is-invalid': errors.customerEmail }"
+                                        id="customerEmail"
+                                        v-model="orderForm.customerEmail"
+                                        placeholder="請輸入Email (用於訂單通知)">
+                                <div class="invalid-feedback">
+                                    {{ errors.customerEmail }}
+                                </div>
+                            </div>
+
+                            <!-- 地址 -->
+                            <div class="mb-3">
+                                <label for="customerAddress" class="form-label">
+                                    <i class="bi bi-geo-alt"></i> 收件地址 *
+                                </label>
+                                <textarea
+                                        class="form-control"
+                                        :class="{ 'is-invalid': errors.customerAddress }"
+                                        id="customerAddress"
+                                        v-model="orderForm.customerAddress"
+                                        rows="3"
+                                        placeholder="請輸入完整收件地址"
+                                        required></textarea>
+                                <div class="invalid-feedback">
+                                    {{ errors.customerAddress }}
+                                </div>
+                            </div>
+
+                            <!-- 備註 -->
+                            <div class="mb-3">
+                                <label for="notes" class="form-label">
+                                    <i class="bi bi-chat-left-text"></i> 訂單備註 (選填)
+                                </label>
+                                <textarea
+                                        class="form-control"
+                                        id="notes"
+                                        v-model="orderForm.notes"
+                                        rows="2"
+                                        placeholder="其他需求或備註"></textarea>
+                            </div>
+
+                            <!-- 配送方式 -->
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="bi bi-truck"></i> 配送方式
+                                </label>
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="shipping" id="freeShipping" checked>
+                                            <label class="form-check-label" for="freeShipping">
+                                                <strong>標準配送</strong> - 免運費
+                                                <br>
+                                                <small class="text-muted">3-5 個工作天送達</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 提交按鈕 -->
+                            <div class="d-grid gap-2">
+                                <button
+                                        type="submit"
+                                        class="btn btn-primary btn-lg"
+                                        :disabled="submitting">
+                                        <span v-if="submitting">
+                                            <span class="spinner-border spinner-border-sm me-2"></span>
+                                            處理中...
+                                        </span>
+                                    <span v-else>
+                                            <i class="bi bi-check-lg me-2"></i>
+                                            確認下單
+                                        </span>
+                                </button>
+                                <a href="cart.html" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left"></i> 返回購物車
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 訂單摘要 -->
+            <div class="col-lg-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-receipt"></i> 訂單摘要
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- 商品列表 -->
+                        <div class="mb-3">
+                            <h6>商品清單</h6>
+                            <div class="border rounded p-2" style="max-height: 300px; overflow-y: auto;">
+                                <div
+                                        v-for="item in cartItems"
+                                        :key="item.product.id"
+                                        class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold">{{ item.product.name }}</div>
+                                        <small class="text-muted">{{ item.product.category }}</small>
+                                        <div class="small">
+                                            NT$ {{ formatPrice(item.product.price) }} × {{ item.quantity }}
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <strong>NT$ {{ formatPrice(item.product.price * item.quantity) }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 費用明細 -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>商品小計 ({{ getTotalQuantity() }} 件)</span>
+                                <span>NT$ {{ formatPrice(getTotalAmount()) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>運費</span>
+                                <span class="text-success">免費</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>折扣</span>
+                                <span>-NT$ 0</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <span class="h5">總計</span>
+                                <span class="h5 text-primary">NT$ {{ formatPrice(getTotalAmount()) }}</span>
+                            </div>
+                        </div>
+
+                        <!-- 付款方式 -->
+                        <div class="mb-3">
+                            <h6>付款方式</h6>
+                            <div class="card bg-light">
+                                <div class="card-body py-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="payment" id="cod" checked>
+                                        <label class="form-check-label" for="cod">
+                                            <i class="bi bi-cash me-2"></i>貨到付款
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 安全保證 -->
+                        <div class="text-center">
+                            <small class="text-muted">
+                                <i class="bi bi-shield-check text-success me-1"></i>
+                                SSL 加密保護您的個人資訊
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div
+                id="successToast"
+                class="toast align-items-center text-white bg-success border-0"
+                role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-check-circle me-2"></i>
+                    {{ toastMessage }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div
+                id="errorToast"
+                class="toast align-items-center text-white bg-danger border-0"
+                role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    {{ toastMessage }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 訂單成功模態框 -->
+    <div class="modal fade" id="successModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-check-circle me-2"></i>
+                        訂單建立成功
+                    </h5>
+                </div>
+                <div class="modal-body text-center">
+                    <i class="bi bi-check-circle text-success display-1"></i>
+                    <h4 class="mt-3">感謝您的訂購！</h4>
+                    <p class="text-muted">您的訂單已成功建立</p>
+
+                    <div v-if="createdOrder" class="card bg-light">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-6">
+                                    <strong>訂單編號</strong>
+                                    <div class="text-primary">#{{ createdOrder.id }}</div>
+                                </div>
+                                <div class="col-6">
+                                    <strong>訂單金額</strong>
+                                    <div class="text-success">NT$ {{ formatPrice(createdOrder.totalAmount) }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="orders.html" class="btn btn-primary">
+                        <i class="bi bi-list-check me-2"></i>查看訂單
+                    </a>
+                    <a href="index.html" class="btn btn-outline-secondary">
+                        <i class="bi bi-house me-2"></i>回到首頁
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript 檔案 -->
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/checkout.js"></script>
+</body>
+</html>

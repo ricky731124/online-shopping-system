@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>購物車 - 線上購物系統</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- 自訂樣式 -->
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+<div id="app">
+    <!-- 導航列 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="bi bi-shop"></i> 線上購物系統
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="orders.html">
+                            <i class="bi bi-list-check"></i> 訂單查詢
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin.html">
+                            <i class="bi bi-gear"></i> 後台管理
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- 購物車按鈕（當前頁面） -->
+                <span class="btn btn-light position-relative me-2">
+                        <i class="bi bi-cart3"></i>
+                        <span
+                                v-if="cartItems.length > 0"
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            {{ getTotalQuantity() }}
+                        </span>
+                    </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容 -->
+    <div class="container mt-4">
+        <!-- 頁面標題 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1>
+                    <i class="bi bi-cart3 text-primary"></i>
+                    購物車
+                </h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="index.html" class="text-decoration-none">首頁</a>
+                        </li>
+                        <li class="breadcrumb-item active">購物車</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <!-- 載入提示 -->
+        <div v-if="loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">載入中...</span>
+            </div>
+            <p class="mt-2">載入購物車中...</p>
+        </div>
+
+        <!-- 空購物車 -->
+        <div v-else-if="cartItems.length === 0" class="text-center py-5">
+            <i class="bi bi-cart-x display-1 text-muted"></i>
+            <h3 class="mt-3">購物車是空的</h3>
+            <p class="text-muted">還沒有加入任何商品，去逛逛吧！</p>
+            <a href="index.html" class="btn btn-primary btn-lg">
+                <i class="bi bi-bag"></i> 開始購物
+            </a>
+        </div>
+
+        <!-- 購物車內容 -->
+        <div v-else class="row">
+            <!-- 購物車商品列表 -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-list"></i> 商品清單
+                        </h5>
+                        <button class="btn btn-outline-danger btn-sm" @click="clearCart">
+                            <i class="bi bi-trash"></i> 清空購物車
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                <tr>
+                                    <th>商品</th>
+                                    <th>價格</th>
+                                    <th>數量</th>
+                                    <th>小計</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-for="item in cartItems" :key="item.product.id">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">{{ item.product.name }}</h6>
+                                                <small class="text-muted">{{ item.product.category }}</small>
+                                                <br>
+                                                <small class="text-success">
+                                                    <i class="bi bi-check-circle"></i>
+                                                    庫存充足 ({{ item.product.stockQuantity }})
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle">
+                                        <strong>NT$ {{ formatPrice(item.product.price) }}</strong>
+                                    </td>
+                                    <td class="align-middle">
+                                        <div class="input-group" style="width: 120px;">
+                                            <button
+                                                    class="btn btn-outline-secondary btn-sm"
+                                                    @click="updateQuantity(item.product.id, item.quantity - 1)">
+                                                <i class="bi bi-dash"></i>
+                                            </button>
+                                            <input
+                                                    type="number"
+                                                    class="form-control form-control-sm text-center"
+                                                    :value="item.quantity"
+                                                    @input="updateQuantity(item.product.id, parseInt($event.target.value))"
+                                                    min="1"
+                                                    :max="item.product.stockQuantity">
+                                            <button
+                                                    class="btn btn-outline-secondary btn-sm"
+                                                    @click="updateQuantity(item.product.id, item.quantity + 1)"
+                                                    :disabled="item.quantity >= item.product.stockQuantity">
+                                                <i class="bi bi-plus"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle">
+                                        <strong class="text-primary">
+                                            NT$ {{ formatPrice(item.product.price * item.quantity) }}
+                                        </strong>
+                                    </td>
+                                    <td class="align-middle">
+                                        <button
+                                                class="btn btn-outline-danger btn-sm"
+                                                @click="removeFromCart(item.product.id)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 繼續購物按鈕 -->
+                <div class="mt-3">
+                    <a href="index.html" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-left"></i> 繼續購物
+                    </a>
+                </div>
+            </div>
+
+            <!-- 訂單摘要 -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-receipt"></i> 訂單摘要
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- 商品統計 -->
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <small class="text-muted">商品數量</small>
+                                <div class="fw-bold">{{ getTotalQuantity() }} 件</div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">商品種類</small>
+                                <div class="fw-bold">{{ cartItems.length }} 種</div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- 價格明細 -->
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>商品小計</span>
+                            <span>NT$ {{ formatPrice(getTotalAmount()) }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>運費</span>
+                            <span class="text-success">免費</span>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="h5">總計</span>
+                            <span class="h5 text-primary">NT$ {{ formatPrice(getTotalAmount()) }}</span>
+                        </div>
+
+                        <!-- 結帳按鈕 -->
+                        <div class="d-grid">
+                            <a href="checkout.html" class="btn btn-primary btn-lg">
+                                <i class="bi bi-credit-card"></i> 前往結帳
+                            </a>
+                        </div>
+
+                        <!-- 安全提示 -->
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                <i class="bi bi-shield-check text-success me-1"></i>
+                                安全結帳保護
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 推薦商品區域 (可選) -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-heart"></i> 您可能也喜歡
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small mb-0">
+                            根據您的購物車商品，我們為您推薦其他相關商品
+                        </p>
+                        <div class="text-center mt-2">
+                            <a href="index.html" class="btn btn-outline-secondary btn-sm">
+                                瀏覽更多商品
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div
+                id="successToast"
+                class="toast align-items-center text-white bg-success border-0"
+                role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-check-circle me-2"></i>
+                    {{ toastMessage }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div
+                id="errorToast"
+                class="toast align-items-center text-white bg-danger border-0"
+                role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    {{ toastMessage }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript 檔案 -->
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/cart.js"></script>
+</body>
+</html>

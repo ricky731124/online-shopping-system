@@ -1,0 +1,514 @@
+/**
+ * 線上購物系統自訂樣式
+ * 增強 Bootstrap 預設樣式，提供更好的視覺體驗
+ */
+
+/* === 全域設定 === */
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #0dcaf0;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+
+    --border-radius: 0.5rem;
+    --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --box-shadow-hover: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+
+    --transition-fast: all 0.15s ease-in-out;
+    --transition-normal: all 0.3s ease-in-out;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--dark-color);
+}
+
+/* === 導航列樣式 === */
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+.navbar-nav .nav-link {
+    font-weight: 500;
+    transition: var(--transition-fast);
+}
+
+.navbar-nav .nav-link:hover {
+    transform: translateY(-1px);
+}
+
+/* 搜尋框樣式 */
+.navbar .d-flex.me-3 input[type="search"] {
+    width: 400px;
+}
+
+/* 購物車按鈕區域 - 移除所有可能造成抖動的效果 */
+.navbar .btn.position-relative {
+    overflow: visible;
+    position: relative;
+    transition: none !important;
+}
+
+.navbar .btn.position-relative:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.navbar .btn.position-relative::before {
+    display: none !important;
+}
+
+/* 購物車徽章 - 固定位置避免抖動 */
+.navbar .btn.position-relative .badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0.25rem 0.4rem;
+    font-size: 0.7rem;
+    line-height: 1;
+    z-index: 1050;
+    pointer-events: none;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Toast 通知位置調整 - 避免遮擋購物車 */
+.toast-container {
+    top: 60px !important;
+    right: 20px !important;
+}
+
+/* === 卡片樣式增強 === */
+.card {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    transition: var(--transition-normal);
+}
+
+.card:hover {
+    box-shadow: var(--box-shadow-hover);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    font-weight: 600;
+}
+
+/* === 商品卡片樣式 === */
+.product-card {
+    height: 100%;
+    transition: var(--transition-normal);
+}
+
+.product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.15);
+}
+
+.product-card .card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.product-card .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--dark-color);
+}
+
+.product-card .card-text {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    flex-grow: 1;
+}
+
+/* === 按鈕樣式增強 === */
+.btn {
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    transition: var(--transition-fast);
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn:hover::before {
+    left: 100%;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* === 表單元素樣式 === */
+.form-control {
+    border-radius: var(--border-radius);
+    border: 1px solid #ced4da;
+    transition: var(--transition-fast);
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    transform: scale(1.02);
+}
+
+.form-select {
+    border-radius: var(--border-radius);
+    transition: var(--transition-fast);
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* === 表格樣式增強 === */
+.table {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.table thead th {
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.table tbody tr {
+    transition: var(--transition-fast);
+}
+
+.table tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+    transform: scale(1.01);
+}
+
+.table-responsive {
+    border-radius: var(--border-radius);
+}
+
+/* === 徽章樣式 === */
+.badge {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.375em 0.75em;
+    border-radius: 0.375rem;
+}
+
+/* === 購物車相關樣式 === */
+.cart-badge {
+    background-color: var(--danger-color);
+    color: white;
+    border-radius: 50%;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    min-width: 1.5rem;
+    text-align: center;
+}
+
+/* 修正購物車徽章位置，避免被遮擋 */
+.position-relative .position-absolute.badge {
+    z-index: 10;
+    pointer-events: none;
+}
+
+.navbar .position-relative {
+    overflow: visible !important;
+}
+
+/* === 載入動畫 === */
+.spinner-border {
+    animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* === 頁尾樣式 === */
+footer {
+    background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+    color: #f8f9fa;
+    margin-top: auto;
+}
+
+footer a {
+    color: #adb5bd;
+    transition: var(--transition-fast);
+}
+
+footer a:hover {
+    color: white;
+    text-decoration: none;
+}
+
+/* === Toast 通知樣式 === */
+.toast {
+    border-radius: var(--border-radius);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.toast .toast-body {
+    font-weight: 500;
+}
+
+/* === 模態框樣式增強 === */
+.modal-content {
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    background-color: #f8f9fa;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+}
+
+/* === 進度條樣式 === */
+.progress {
+    border-radius: var(--border-radius);
+    height: 0.5rem;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, var(--primary-color) 0%, #0056b3 100%);
+}
+
+/* === 搜尋和篩選區域 === */
+.filter-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* === 空狀態樣式 === */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--secondary-color);
+}
+
+.empty-state i {
+    font-size: 5rem;
+    opacity: 0.5;
+    margin-bottom: 1rem;
+}
+
+/* === 後台管理樣式 === */
+.admin-sidebar {
+    background: linear-gradient(180deg, #343a40 0%, #495057 100%);
+    min-height: calc(100vh - 56px);
+}
+
+.admin-content {
+    background-color: #f8f9fa;
+    min-height: calc(100vh - 56px);
+}
+
+/* === 統計卡片樣式 === */
+.stat-card {
+    background: linear-gradient(135deg, white 0%, #f8f9fa 100%);
+    border-left: 4px solid var(--primary-color);
+    transition: var(--transition-normal);
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--box-shadow-hover);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+/* === 響應式設計 === */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .product-card {
+        margin-bottom: 1rem;
+    }
+
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    .card {
+        margin-bottom: 1rem;
+    }
+
+    .navbar-nav {
+        padding-top: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-section {
+        padding: 3rem 0;
+    }
+
+    .display-4 {
+        font-size: 2rem;
+    }
+
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+    }
+}
+
+/* === 動畫效果 === */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-in-up {
+    animation: slideInUp 0.6s ease-out;
+}
+
+/* === 工具類別 === */
+.text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #0056b3 100%);
+}
+
+.bg-gradient-secondary {
+    background: linear-gradient(135deg, var(--secondary-color) 0%, #495057 100%);
+}
+
+.border-gradient {
+    position: relative;
+}
+
+.border-gradient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+    border-radius: inherit;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+}
+
+/* === 打印樣式 === */
+@media print {
+    body {
+        background: white !important;
+    }
+
+    .navbar,
+    .footer,
+    .btn,
+    .toast,
+    .modal {
+        display: none !important;
+    }
+
+    .container {
+        max-width: none !important;
+    }
+
+    .card {
+        border: 1px solid #dee2e6 !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+
+    .table {
+        break-inside: avoid;
+    }
+
+    .page-break {
+        page-break-before: always;
+    }
+}
