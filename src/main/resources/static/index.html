@@ -39,18 +39,36 @@
                     </li>
                 </ul>
 
-                <!-- 搜尋框 -->
-                <form class="d-flex me-3" @submit.prevent="searchProducts">
-                    <input
-                            class="form-control"
-                            type="search"
-                            v-model="searchKeyword"
-                            placeholder="搜尋商品..."
-                            style="width: 400px;">
-                    <button class="btn btn-outline-light" type="submit">
-                        <i class="bi bi-search"></i>
-                    </button>
-                </form>
+                <!-- 搜尋框 - 新增搜尋建議功能 -->
+                <div class="position-relative me-3" ref="searchContainer">
+                    <form class="d-flex" @submit.prevent="searchProducts">
+                        <input
+                                class="form-control"
+                                type="search"
+                                v-model="searchKeyword"
+                                @input="onSearchInput"
+                                @keydown="handleKeydown"
+                                placeholder="搜尋商品..."
+                                style="width: 400px;">
+                        <button class="btn btn-outline-light" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </form>
+
+                    <!-- 搜尋建議下拉清單 -->
+                    <div
+                            v-if="showSuggestions"
+                            class="search-suggestions">
+                        <div
+                                v-for="(suggestion, index) in searchSuggestions"
+                                :key="index"
+                                class="search-suggestion-item"
+                                :class="{ 'active': index === selectedSuggestionIndex }"
+                                @click="selectSuggestion(suggestion)"
+                                v-html="highlightMatch(suggestion)">
+                        </div>
+                    </div>
+                </div>
 
                 <!-- 購物車按鈕 -->
                 <a href="cart.html" class="btn btn-outline-light position-relative me-2">

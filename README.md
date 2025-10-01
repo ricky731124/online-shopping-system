@@ -320,6 +320,9 @@ src/main/resources/static/                  # 前端靜態資源
 - ✅ 資料驗證與錯誤處理
 ### v1.0.1 (2025-10-01)
 - ✅ 修正訂單查詢條件改為訂單編號或客戶電話
+### v1.0.2 (2025-10-02)
+- ✅ 新增 自動完成/搜尋建議（Autocomplete/Search Suggestions）功能
+  ![Autocomplete](docs/Autocomplete.png)
 
 ## 👀 功能需求介面預覽
 ### *前台 - 購物系統首頁*:

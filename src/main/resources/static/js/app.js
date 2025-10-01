@@ -1,6 +1,7 @@
 /**
  * 首頁 Vue.js 應用程式
  * 處理商品瀏覽、搜尋、篩選和購物車功能
+ * 新增：即時搜尋建議功能
  */
 
 const { createApp } = Vue;
@@ -20,6 +21,12 @@ const app = createApp({
             searchKeyword: '',
             selectedCategories: [],
 
+            // 搜尋建議功能
+            searchSuggestions: [],
+            selectedSuggestionIndex: -1,
+            showSuggestions: false,
+            searchInputTimer: null,
+
             // 購物車
             cartItemCount: 0,
 
@@ -35,6 +42,14 @@ const app = createApp({
 
         // 設定全域 app 參考（供 ToastUtils 使用）
         window.app = this;
+
+        // 點擊頁面其他地方時關閉建議清單
+        document.addEventListener('click', (e) => {
+            const searchContainer = this.$refs.searchContainer;
+            if (searchContainer && !searchContainer.contains(e.target)) {
+                this.hideSuggestions();
+            }
+        });
     },
 
     methods: {
@@ -63,11 +78,127 @@ const app = createApp({
         },
 
         /**
+         * 搜尋輸入事件處理（即時建議）
+         */
+        onSearchInput() {
+            // 清除之前的計時器
+            if (this.searchInputTimer) {
+                clearTimeout(this.searchInputTimer);
+            }
+
+            // 如果輸入為空，隱藏建議
+            if (!this.searchKeyword || this.searchKeyword.trim() === '') {
+                this.hideSuggestions();
+                return;
+            }
+
+            // 使用防抖，300ms 後執行搜尋建議
+            this.searchInputTimer = setTimeout(() => {
+                this.getSuggestions();
+            }, 300);
+        },
+
+        /**
+         * 獲取搜尋建議
+         */
+        getSuggestions() {
+            const keyword = this.searchKeyword.trim().toLowerCase();
+
+            if (!keyword) {
+                this.hideSuggestions();
+                return;
+            }
+
+            // 從所有商品中篩選包含關鍵字的商品名稱（不區分大小寫）
+            const suggestions = this.allProducts
+                .filter(product => {
+                    const productName = product.name.toLowerCase();
+                    return productName.includes(keyword);
+                })
+                .slice(0, 5) // 最多顯示 5 個
+                .map(product => product.name);
+
+            // 去重
+            this.searchSuggestions = [...new Set(suggestions)];
+            this.showSuggestions = this.searchSuggestions.length > 0;
+            this.selectedSuggestionIndex = -1;
+        },
+
+        /**
+         * 選擇建議項目
+         */
+        selectSuggestion(suggestion) {
+            this.searchKeyword = suggestion;
+            this.hideSuggestions();
+            this.searchProducts();
+        },
+
+        /**
+         * 處理鍵盤事件
+         */
+        handleKeydown(event) {
+            if (!this.showSuggestions) return;
+
+            switch (event.key) {
+                case 'ArrowDown':
+                    event.preventDefault();
+                    if (this.selectedSuggestionIndex < this.searchSuggestions.length - 1) {
+                        this.selectedSuggestionIndex++;
+                    }
+                    break;
+
+                case 'ArrowUp':
+                    event.preventDefault();
+                    if (this.selectedSuggestionIndex > 0) {
+                        this.selectedSuggestionIndex--;
+                    }
+                    break;
+
+                case 'Enter':
+                    event.preventDefault();
+                    if (this.selectedSuggestionIndex >= 0) {
+                        this.selectSuggestion(this.searchSuggestions[this.selectedSuggestionIndex]);
+                    } else {
+                        this.hideSuggestions();
+                        this.searchProducts();
+                    }
+                    break;
+
+                case 'Escape':
+                    event.preventDefault();
+                    this.hideSuggestions();
+                    break;
+            }
+        },
+
+        /**
+         * 隱藏建議清單
+         */
+        hideSuggestions() {
+            this.showSuggestions = false;
+            this.searchSuggestions = [];
+            this.selectedSuggestionIndex = -1;
+        },
+
+        /**
+         * 高亮顯示匹配的文字
+         */
+        highlightMatch(text) {
+            if (!this.searchKeyword) return text;
+
+            const keyword = this.searchKeyword.trim();
+            const regex = new RegExp(`(${keyword})`, 'gi');
+            return text.replace(regex, '<strong class="text-primary">$1</strong>');
+        },
+
+        /**
          * 搜尋商品
          */
         async searchProducts() {
             try {
                 this.loading = true;
+                this.hideSuggestions();
+
                 const response = await ApiUtils.get('/products', {
                     search: this.searchKeyword
                 });
@@ -109,6 +240,7 @@ const app = createApp({
             this.searchKeyword = '';
             this.selectedCategories = [];
             this.filteredProducts = [...this.allProducts];
+            this.hideSuggestions();
         },
 
         /**
