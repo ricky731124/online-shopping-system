@@ -14,7 +14,7 @@
 - **分類篩選**：多選 checkbox 即時篩選商品分類
 - **購物車**：使用 localStorage 儲存，支援數量調整
 - **訂單結帳**：完整的下單流程，包含收件人資訊填寫
-- **訂單查詢**：客戶可依 Email 或電話查詢歷史訂單
+- **訂單查詢**：客戶可依訂單編號或電話查詢歷史訂單
 
 #### ⚙️ 後台管理功能
 - **商品管理**：新增、編輯、刪除商品，商品上下架控制
@@ -150,7 +150,7 @@ mvn spring-boot:run
 #### 查詢客戶訂單
 - **請求**: `GET /api/orders/customer`
 - **參數**:
-    - `email` (可選): 客戶Email
+    - `orderId` (可選): 訂單編號
     - `phone` (可選): 客戶電話
 - **回應**: 客戶訂單列表
 
@@ -239,7 +239,7 @@ mvn spring-boot:run
 | unit_price | DECIMAL(10,2) | 商品單價 |
 | product_name | VARCHAR(200) | 商品名稱快照 |
 
-# ⭐ ERD（Entity Relationship Diagram）⭐
+## ⭐ ERD（Entity Relationship Diagram）
 ![ERD Diagram](docs/erd.png)
 
 ## 🏗 專案架構說明
@@ -318,8 +318,10 @@ src/main/resources/static/                  # 前端靜態資源
 - ✅ 後台管理功能
 - ✅ RESTful API 設計
 - ✅ 資料驗證與錯誤處理
+### v1.0.1 (2025-10-01)
+- ✅ 修正訂單查詢條件改為訂單編號或客戶電話
 
-## 😇 功能需求介面預覽
+## 👀 功能需求介面預覽
 ### *前台 - 購物系統首頁*:
 ![前台-購物首頁](docs/前台-購物首頁.png)
 ### *前台 - 購物車*:

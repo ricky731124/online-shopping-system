@@ -26,7 +26,7 @@ public class OnlineShoppingSystemApplication {
 
         System.out.println("\n" + "=".repeat(50));
         System.out.println("🚀 線上購物系統啟動成功！");
-        System.out.println("📱 前台購物：http://localhost:8080");
+        System.out.println("📱 前台購物：http://localhost:8080/index.html");
         System.out.println("⚙️  後台管理：http://localhost:8080/admin.html");
         System.out.println("🔧 API 文件：http://localhost:8080/api/products");
         System.out.println("=".repeat(50) + "\n");

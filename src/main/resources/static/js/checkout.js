@@ -176,9 +176,8 @@ const app = createApp({
                     this.createdOrder = response.data;
 
                     // 儲存訂單資訊到 localStorage 供查詢使用
-                    StorageUtils.setItem('lastOrderEmail', this.orderForm.customerEmail || '');
-                    StorageUtils.setItem('lastOrderPhone', this.orderForm.customerPhone || '');
                     StorageUtils.setItem('lastOrderId', response.data.id);
+                    //StorageUtils.setItem('lastOrderPhone', this.orderForm.customerPhone || '');
 
                     // 清空購物車
                     CartUtils.clearCart();

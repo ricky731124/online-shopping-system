@@ -166,11 +166,11 @@ public class ApiController {
      */
     @GetMapping("/orders/customer")
     public ResponseEntity<Map<String, Object>> getCustomerOrders(
-            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String orderId,
             @RequestParam(required = false) String phone) {
 
         try {
-            List<Order> orders = orderService.findCustomerOrders(email, phone);
+            List<Order> orders = orderService.findCustomerOrders(orderId, phone);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);

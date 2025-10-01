@@ -1,6 +1,7 @@
 /**
  * 訂單查詢頁面 Vue.js 應用程式
  * 處理客戶訂單查詢和詳情檢視功能
+ * 修改：改為使用訂單編號或電話查詢
  */
 
 const { createApp } = Vue;
@@ -14,7 +15,7 @@ const app = createApp({
 
             // 搜尋表單
             searchForm: {
-                email: '',
+                orderId: '',
                 phone: ''
             },
 
@@ -38,21 +39,20 @@ const app = createApp({
         window.app = this;
 
         // 檢查是否有剛下單的訂單資訊
-        const lastOrderEmail = StorageUtils.getItem('lastOrderEmail', '');
+        const lastOrderId = StorageUtils.getItem('lastOrderId', '');
         const lastOrderPhone = StorageUtils.getItem('lastOrderPhone', '');
 
-        if (lastOrderEmail || lastOrderPhone) {
+        if (lastOrderId || lastOrderPhone) {
             // 自動填入並搜尋
-            this.searchForm.email = lastOrderEmail;
+            this.searchForm.orderId = lastOrderId ? lastOrderId.toString() : '';
             this.searchForm.phone = lastOrderPhone;
 
             // 自動執行搜尋
             this.searchOrders();
 
             // 清除 localStorage 中的訂單資訊（只自動搜尋一次）
-            StorageUtils.removeItem('lastOrderEmail');
-            StorageUtils.removeItem('lastOrderPhone');
             StorageUtils.removeItem('lastOrderId');
+            StorageUtils.removeItem('lastOrderPhone');
         }
     },
 
@@ -63,15 +63,22 @@ const app = createApp({
         async searchOrders() {
             try {
                 // 驗證搜尋條件
-                if (!this.searchForm.email && !this.searchForm.phone) {
-                    this.toastMessage = '請至少填入一項聯絡資訊';
+                if (!this.searchForm.orderId && !this.searchForm.phone) {
+                    this.toastMessage = '請至少填入一項資訊（訂單編號或電話）';
                     ToastUtils.showError(this.toastMessage);
                     return;
                 }
 
-                // 驗證 Email 格式（如果有填）
-                if (this.searchForm.email && !ValidationUtils.isValidEmail(this.searchForm.email)) {
-                    this.toastMessage = '請輸入有效的Email地址';
+                // 驗證訂單編號格式（如果有填）
+                if (this.searchForm.orderId && !ValidationUtils.isValidOrderId(this.searchForm.orderId)) {
+                    this.toastMessage = '請輸入有效的訂單編號（純數字）';
+                    ToastUtils.showError(this.toastMessage);
+                    return;
+                }
+
+                // 驗證電話格式（如果有填）
+                if (this.searchForm.phone && !ValidationUtils.isValidPhone(this.searchForm.phone)) {
+                    this.toastMessage = '請輸入有效的電話號碼';
                     ToastUtils.showError(this.toastMessage);
                     return;
                 }
@@ -80,7 +87,7 @@ const app = createApp({
 
                 // 發送搜尋請求
                 const response = await ApiUtils.get('/orders/customer', {
-                    email: this.searchForm.email || undefined,
+                    orderId: this.searchForm.orderId || undefined,
                     phone: this.searchForm.phone || undefined
                 });
 
@@ -116,7 +123,7 @@ const app = createApp({
          * 清除搜尋條件
          */
         clearSearch() {
-            this.searchForm.email = '';
+            this.searchForm.orderId = '';
             this.searchForm.phone = '';
             this.orders = [];
             this.searchPerformed = false;
@@ -242,8 +249,8 @@ const app = createApp({
          */
         getSearchInfo() {
             const conditions = [];
-            if (this.searchForm.email) {
-                conditions.push(`Email: ${this.searchForm.email}`);
+            if (this.searchForm.orderId) {
+                conditions.push(`訂單編號: ${this.searchForm.orderId}`);
             }
             if (this.searchForm.phone) {
                 conditions.push(`電話: ${this.searchForm.phone}`);

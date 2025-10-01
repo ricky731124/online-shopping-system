@@ -184,18 +184,18 @@ public class OrderService {
     }
 
     /**
-     * 依客戶聯絡資訊查詢訂單
+     * 依客戶訂單編號或電話查詢訂單
      */
-    public List<Order> findCustomerOrders(String customerEmail, String customerPhone) {
-        if ((customerEmail == null || customerEmail.trim().isEmpty()) &&
+    public List<Order> findCustomerOrders(String orderId, String customerPhone) {
+        if ((orderId == null || orderId.trim().isEmpty()) &&
                 (customerPhone == null || customerPhone.trim().isEmpty())) {
-            throw new IllegalArgumentException("請提供Email或電話號碼");
+            throw new IllegalArgumentException("請提供訂單編號或電話號碼");
         }
 
-        String email = customerEmail != null ? customerEmail.trim() : "";
+        String id = orderId != null ? orderId.trim() : "";
         String phone = customerPhone != null ? customerPhone.trim() : "";
 
-        return orderRepository.findCustomerOrders(email, phone);
+        return orderRepository.findCustomerOrders(id, phone);
     }
 
     /**

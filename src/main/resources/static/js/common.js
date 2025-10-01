@@ -305,6 +305,17 @@ class ValidationUtils {
     }
 
     /**
+     * 驗證訂單編號格式（純數字）
+     * @param {string} orderId - 訂單編號
+     * @returns {boolean} 是否有效
+     */
+    static isValidOrderId(orderId) {
+        if (!orderId) return false;
+        const orderIdRegex = /^\d+$/;
+        return orderIdRegex.test(orderId.toString().trim());
+    }
+
+    /**
      * 驗證必填欄位
      * @param {string} value - 值
      * @returns {boolean} 是否有效

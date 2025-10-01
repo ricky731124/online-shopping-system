@@ -44,9 +44,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
      * 依客戶聯絡資訊查詢訂單（客戶查詢自己的訂單用）
      */
     @Query("SELECT o FROM Order o WHERE " +
-            "(o.customerEmail = :email OR o.customerPhone = :phone) " +
+            "(CAST(o.id AS string) = :orderId OR o.customerPhone = :phone) " +
             "ORDER BY o.orderDate DESC")
-    List<Order> findCustomerOrders(@Param("email") String customerEmail,
+    List<Order> findCustomerOrders(@Param("orderId") String orderId,
                                    @Param("phone") String customerPhone);
 
     /**
