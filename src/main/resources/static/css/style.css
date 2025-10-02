@@ -363,6 +363,91 @@ footer a:hover {
     margin-bottom: 2rem;
 }
 
+/* === 熱門商品輪播樣式 === */
+.hot-products-card {
+    border: 2px solid #dc3545;
+    box-shadow: 0 0.5rem 1.5rem rgba(220, 53, 69, 0.2);
+    overflow: hidden;
+}
+
+.hot-products-card .card-header {
+    background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
+    border: none;
+}
+
+.hot-product-item {
+    background: white;
+    min-height: 300px;
+    position: relative;
+}
+
+.hot-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.4);
+    z-index: 10;
+}
+
+.hot-product-item .product-name {
+    font-weight: 600;
+    color: var(--dark-color);
+    min-height: 2.5rem;
+}
+
+.hot-product-item .product-desc {
+    min-height: 3rem;
+    line-height: 1.4;
+}
+
+/* Carousel 控制按鈕樣式調整 */
+.hot-products-card .carousel-control-prev,
+.hot-products-card .carousel-control-next {
+    width: 40px;
+    opacity: 0.7;
+    transition: var(--transition-fast);
+}
+
+.hot-products-card .carousel-control-prev:hover,
+.hot-products-card .carousel-control-next:hover {
+    opacity: 1;
+}
+
+.hot-products-card .carousel-control-prev-icon,
+.hot-products-card .carousel-control-next-icon {
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    padding: 10px;
+}
+
+/* Carousel 指示器樣式 */
+.hot-products-card .carousel-indicators {
+    margin-bottom: 0.5rem;
+}
+
+.hot-products-card .carousel-indicators [data-bs-target] {
+    background-color: #dc3545;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+/* 漸入動畫效果 */
+.carousel-item {
+    transition: transform 0.6s ease-in-out;
+}
+
+/* 背景漸層效果 */
+.bg-gradient-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
 /* === 空狀態樣式 === */
 .empty-state {
     text-align: center;

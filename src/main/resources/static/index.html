@@ -109,6 +109,90 @@
         <!-- 篩選區域 -->
         <div class="row mb-4">
             <div class="col-md-3">
+                <!-- 熱門商品輪播 -->
+                <div v-if="hotProducts && hotProducts.length > 0" class="card mb-4 hot-products-card">
+                    <div class="card-header bg-gradient-danger text-white text-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-fire"></i> 本週熱賣 <i class="bi bi-fire"></i>
+                        </h5>
+                        <small>數量有限，把握機會</small>
+                    </div>
+                    <div class="card-body p-0">
+                        <!-- Bootstrap Carousel -->
+                        <div id="hotProductsCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="4000" ref="hotCarousel">
+                            <!-- 指示器 -->
+                            <div class="carousel-indicators" v-if="hotProducts.length > 1">
+                                <button
+                                        v-for="(product, index) in hotProducts"
+                                        :key="'indicator-' + product.id"
+                                        type="button"
+                                        data-bs-target="#hotProductsCarousel"
+                                        :data-bs-slide-to="index"
+                                        :class="{ active: index === 0 }"
+                                        :aria-current="index === 0 ? 'true' : 'false'"
+                                        :aria-label="'商品 ' + (index + 1)">
+                                </button>
+                            </div>
+
+                            <!-- 輪播項目 -->
+                            <div class="carousel-inner">
+                                <div
+                                        v-for="(product, index) in hotProducts"
+                                        :key="'carousel-' + product.id"
+                                        class="carousel-item"
+                                        :class="{ active: index === 0 }">
+                                    <div class="hot-product-item p-3">
+                                        <!-- 庫存告急標籤 -->
+                                        <div class="hot-badge">
+                                            <i class="bi bi-lightning-fill"></i> 庫存告急
+                                        </div>
+
+                                        <!-- 商品資訊 -->
+                                        <h6 class="product-name mb-2">{{ product.name }}</h6>
+                                        <span class="badge bg-secondary mb-2">{{ product.category }}</span>
+
+                                        <p class="product-desc text-muted small mb-3">
+                                            {{ truncateText(product.description, 60) }}
+                                        </p>
+
+                                        <!-- 價格和庫存 -->
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <span class="h5 text-danger mb-0">
+                                                NT$ {{ formatPrice(product.price) }}
+                                            </span>
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-box"></i> 僅剩 {{ product.stockQuantity }}
+                                            </span>
+                                        </div>
+
+                                        <!-- 加入購物車按鈕 -->
+                                        <div class="d-grid">
+                                            <button
+                                                    class="btn btn-danger btn-sm"
+                                                    @click="addToCart(product)">
+                                                <i class="bi bi-cart-plus"></i> 立即搶購
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 左右切換按鈕 (只有超過1個商品才顯示) -->
+                            <template v-if="hotProducts.length > 1">
+                                <button class="carousel-control-prev" type="button" data-bs-target="#hotProductsCarousel" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">上一個</span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#hotProductsCarousel" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">下一個</span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 商品篩選 -->
                 <div class="card">
                     <div class="card-header bg-light">
                         <h6 class="mb-0">
@@ -254,7 +338,7 @@
 </div>
 
 <!-- 頁尾 -->
-<footer class="bg-dark text-light py-4 mt-5">
+<footer class="bg-gradient-primary text-light py-4 mt-5">
     <div class="container">
         <div class="row">
             <div class="col-md-6">

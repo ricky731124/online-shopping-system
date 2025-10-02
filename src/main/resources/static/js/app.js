@@ -27,6 +27,9 @@ const app = createApp({
             showSuggestions: false,
             searchInputTimer: null,
 
+            // 熱門商品（庫存最低的商品）
+            hotProducts: [],
+
             // 購物車
             cartItemCount: 0,
 
@@ -65,6 +68,12 @@ const app = createApp({
                     this.allProducts = response.data;
                     this.categories = response.categories;
                     this.filteredProducts = [...this.allProducts];
+                    // 【新增邏輯】計算熱門商品：篩選出庫存最低的前 3 名
+                    this.hotProducts = this.allProducts
+                        .slice()
+                        .filter(product => product.stockQuantity > 0)
+                        .sort((a, b) => a.stockQuantity - b.stockQuantity)
+                        .slice(0, 3);
                 } else {
                     throw new Error(response.message || '載入商品失敗');
                 }
@@ -74,6 +83,38 @@ const app = createApp({
                 ToastUtils.showError(this.toastMessage);
             } finally {
                 this.loading = false;
+            }
+        },
+
+        /**
+         * 手動初始化 Bootstrap 輪播並設定自動播放
+         */
+        initCarousel() {
+            // 1. 【使用 Ref】使用 Vue Ref 存取 DOM 元素
+            const carouselEl = this.$refs.hotCarousel;
+
+            if (carouselEl && this.hotProducts.length > 1) {
+
+                // 2. 銷毀舊實例 (防止重複初始化)
+                const existingCarousel = bootstrap.Carousel.getInstance(carouselEl);
+                if (existingCarousel) {
+                    existingCarousel.dispose();
+                }
+
+                // 3. 創建 Bootstrap 實例
+                const carousel = new bootstrap.Carousel(carouselEl, {
+                    interval: 4000, // 輪播間隔設為 4 秒
+                    wrap: true
+                });
+
+                // 4. 延遲 cycle() 指令
+                // 確保 Bootstrap 實例創建後，給予 200ms 的時間讓其內部狀態穩定後再強制啟動自動播放
+                setTimeout(() => {
+                    carousel.cycle();
+                }, 200);
+
+            } else {
+                console.warn(`⚠️ 輪播未啟動。Hot products count: ${this.hotProducts.length} (可能元素還未渲染)`);
             }
         },
 
@@ -321,6 +362,19 @@ const app = createApp({
         selectedCategories: {
             handler() {
                 this.filterProducts();
+            },
+            deep: true
+        },
+        // 監聽hotProducts，取到值後再進行輪播設定
+        hotProducts: {
+            handler(newVal) {
+                // 只有在 hotProducts 有資料 (且長度 > 1) 時才啟動
+                if (newVal && newVal.length > 1) {
+                    // 使用 $nextTick 確保 v-if 條件成立後，HTML 元素已經被渲染到 DOM
+                    this.$nextTick(() => {
+                        this.initCarousel();
+                    });
+                }
             },
             deep: true
         }
